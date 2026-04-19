@@ -1,0 +1,8 @@
+[
+  {"event_id": "evt_001", "account_id": "acct_a", "event_type": "signup", "timestamp": "2026-01-01T10:00:00Z", "status": "ok"},
+  {"event_id": "evt_002", "account_id": "acct_a", "event_type": "activation", "timestamp": "2026-01-02T10:00:00Z", "status": "ok"},
+  {"event_id": "evt_003", "account_id": "acct_a", "event_type": "purchase", "timestamp": "2026-01-05T10:00:00Z", "status": "ok"},
+  {"event_id": "evt_004", "account_id": "acct_b", "event_type": "signup", "timestamp": "2026-01-02T12:15:00Z", "status": "ok"},
+  {"event_id": "evt_005", "account_id": "acct_b", "event_type": "activation", "timestamp": "2026-01-04T12:15:00Z", "status": "retry"},
+  {"event_id": "evt_006", "account_id": "acct_c", "event_type": "signup", "timestamp": "2026-01-03T09:30:00Z", "status": "ok"}
+]
