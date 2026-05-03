@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>CRM Event Pipeline</title>
+<style>
+body { margin:0; background:#f6f8fb; color:#0f172a; font-family:Arial, sans-serif; }
+.header { background:#111827; color:white; padding:24px 34px; }
+.header h1 { margin:0; }
+.header p { color:#cbd5e1; }
+.container { max-width:1280px; margin:auto; padding:24px; }
+.grid { display:grid; grid-template-columns:1.2fr .8fr; gap:20px; }
+.card { background:white; border:1px solid #e2e8f0; border-radius:18px; padding:20px; margin-bottom:20px; box-shadow:0 8px 24px rgba(15,23,42,.06); }
+.kpis { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; }
+.kpi { background:white; border:1px solid #e2e8f0; border-radius:16px; padding:18px; }
+.label { color:#64748b; font-size:13px; }
+.value { font-size:30px; font-weight:bold; margin-top:8px; }
+.good { color:#16a34a; } .bad { color:#dc2626; } .warn { color:#d97706; } .blue { color:#2563eb; }
+input { width:70%; padding:12px; border:1px solid #cbd5e1; border-radius:12px; }
+button { padding:12px 14px; border:0; border-radius:12px; background:#2563eb; color:white; font-weight:bold; cursor:pointer; }
+.quick button { margin:8px 6px 0 0; background:#eff6ff; color:#2563eb; }
+.box { background:#f8fafc; border:1px solid #e2e8f0; border-radius:14px; padding:14px; margin-top:10px; line-height:1.5; }
+.box b { color:#64748b; text-transform:uppercase; font-size:12px; display:block; margin-bottom:5px; }
+table { width:100%; border-collapse:collapse; }
+th,td { padding:12px; border-bottom:1px solid #e2e8f0; text-align:left; }
+th { color:#64748b; background:#f8fafc; }
+.pill { padding:5px 9px; border-radius:999px; font-size:12px; font-weight:bold; background:#ecfdf5; color:#16a34a; }
+.pill.warn { background:#fffbeb; color:#d97706; }
+.stage { display:flex; gap:8px; flex-wrap:wrap; }
+.stage span { background:#eff6ff; color:#2563eb; padding:5px 8px; border-radius:999px; font-size:12px; }
+@media(max-width:900px){ .grid,.kpis{grid-template-columns:1fr;} input{width:100%; margin-bottom:8px;} }
+</style>
+</head>
+<body>
+<div class="header">
+    <h1>CRM Event Pipeline</h1>
+    <p>Deterministic CRM funnel tracking + local AI analyst for account follow-up decisions.</p>
+</div>
+
+<div class="container">
+    <div class="card">
+        <h2>Ask Local AI</h2>
+        <input id="q" placeholder="Ask about funnel risks, retries, accounts, or recommended actions...">
+        <button onclick="ask()">Ask</button>
+        <div class="quick">
+            <button onclick="preset('What are the top funnel risks in this CRM pipeline?')">Top Risks</button>
+            <button onclick="preset('Which accounts need follow-up and why?')">Account Follow-up</button>
+            <button onclick="preset('What do the event status counts show?')">Status Counts</button>
+            <button onclick="preset('What actions should the operator take next?')">Operator Actions</button>
+        </div>
+        <div id="status" class="label" style="margin-top:12px;"></div>
+        <div id="answer"></div>
+    </div>
+
+    <div class="kpis">
+        <div class="kpi"><div class="label">Total Events</div><div id="total_events" class="value blue">0</div></div>
+        <div class="kpi"><div class="label">Accounts</div><div id="total_accounts" class="value blue">0</div></div>
+        <div class="kpi"><div class="label">Quality Rate</div><div id="quality_rate" class="value good">0%</div></div>
+        <div class="kpi"><div class="label">Retry / Failed</div><div id="bad_events" class="value bad">0</div></div>
+    </div>
+
+    <div class="grid" style="margin-top:20px;">
+        <section>
+            <div class="card">
+                <h2>Local AI Analyst</h2>
+<div id="ai"></div>
+<div class="card">
+<h3>Deterministic Summary</h3>
+<pre id="raw"></pre>
+</div>
+            </div>
+
+            <div class="card">
+                <h2>Account Funnel Status</h2>
+                <table id="accounts"></table>
+            </div>
+        </section>
+
+        <aside>
+            <div class="card">
+                <h2>Stage Counts</h2>
+                <div id="stages"></div>
+            </div>
+
+            <div class="card">
+                <h2>Status Counts</h2>
+                <div id="statuses"></div>
+            </div>
+
+            <div class="card">
+                <h2>Daily Event Volume</h2>
+                <div id="days"></div>
+            </div>
+        </aside>
+    </div>
+</div>
+
+<script>
+function box(label, value){
+    return `<div class="box"><b>${label}</b>${value || "No data available."}</div>`
+}
+
+function list(items){
+    if(!items || !items.length) return "No items reported."
+    return "<ul>" + items.map(x=>`<li>${x}</li>`).join("") + "</ul>"
+}
+
+async function load(){
+    const res = await fetch("/data")
+    const data = await res.json()
+    const s = data.summary
+    const ai = data.ai_copilot || {}
+
+    document.getElementById("total_events").innerText = s.total_events
+    document.getElementById("total_accounts").innerText = s.total_accounts
+    document.getElementById("quality_rate").innerText = (s.quality_rate * 100).toFixed(1) + "%"
+    document.getElementById("bad_events").innerText = s.retry_or_failed_events
+
+    document.getElementById("ai").innerHTML =
+        box("Result", ai.result) +
+        box("Recommendation", ai.recommendation) +
+        box("Decision", ai.decision) +
+        box("Executive Summary", ai.executive_summary) +
+        box("Top Risks", list(ai.top_risks)) +
+        box("Operator Actions", list(ai.operator_actions))
+
+    document.getElementById("stages").innerHTML = Object.entries(s.stage_counts)
+        .map(([k,v])=>box(k, v)).join("")
+
+    document.getElementById("statuses").innerHTML = Object.entries(s.status_counts)
+        .map(([k,v])=>box(k, v)).join("")
+
+    document.getElementById("days").innerHTML = Object.entries(s.events_by_day)
+        .map(([k,v])=>box(k, v + " events")).join("")
+
+    let rows = `<tr><th>Account</th><th>Completed Stages</th><th>Next Stage</th><th>Ratio</th><th>Status</th></tr>`
+    s.accounts.forEach(a=>{
+        rows += `<tr>
+            <td><b>${a.account_id}</b></td>
+            <td><div class="stage">${a.completed_stages.map(x=>`<span>${x}</span>`).join("")}</div></td>
+            <td>${a.next_stage}</td>
+            <td>${Math.round(a.completion_ratio * 100)}%</td>
+            <td>${a.needs_followup ? `<span class="pill warn">Follow up</span>` : `<span class="pill">Complete</span>`}</td>
+        </tr>`
+    })
+    document.getElementById("accounts").innerHTML = rows
+}
+
+function preset(q){
+    document.getElementById("q").value = q
+}
+
+async function ask(){
+    const q = document.getElementById("q").value
+    document.getElementById("status").innerText = "Running Local AI..."
+    document.getElementById("answer").innerHTML = ""
+
+    const res = await fetch("/ask", { method:"POST", body:q })
+    const d = await res.json()
+
+    document.getElementById("status").innerText = "Local AI Finished"
+    document.getElementById("answer").innerHTML =
+        box("Answer", d.answer) +
+        box("Evidence", d.evidence) +
+        box("Next Action", d.next_action) +
+        box("Recommendation", d.recommendation) +
+        box("Decision", d.decision) +
+        box("Risks", list(d.risks)) +
+        box("Operator Actions", list(d.operator_actions))
+}
+
+load()
+</script>
+</body>
+</html>

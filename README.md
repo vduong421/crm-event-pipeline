@@ -1,4 +1,4 @@
-# CRM Event Pipeline
+﻿# CRM Event Pipeline
 
 A small backend/data project that ingests CRM events, stores them in SQLite, and produces funnel metrics.
 
@@ -22,12 +22,23 @@ A small backend/data project that ingests CRM events, stores them in SQLite, and
 python app.py --events samples/events.json
 ```
 
-## Resume Bullets
-
+## Engineering Impact
 - Built a Python CRM event pipeline that ingests JSON events, stores them in SQLite, and generates account-level funnel metrics.
 - Modeled customer lifecycle events such as signup, activation, purchase, and renewal for backend/product analytics reporting.
 - Produced structured summaries for transaction status, conversion progress, and event counts.
 
-## GitHub Reminder
+## Project Workbench
 
-Push this project to GitHub before using it as a resume link.
+Launch the production-style desktop workbench with:
+
+```powershell
+launch-workbench.bat
+```
+
+What it adds:
+
+- Local-first AI copilot using `google/gemma-4-e4b` by default
+- Operator-focused workbench for reviewing real project inputs and outputs
+- System design, production-impact, and operational brief generation on demand
+- Grounded responses based on this project's README, sample files, and deterministic outputs
+
