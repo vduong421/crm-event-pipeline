@@ -1,44 +1,59 @@
-﻿# CRM Event Pipeline
+# CRM Event Pipeline
 
-A small backend/data project that ingests CRM events, stores them in SQLite, and produces funnel metrics.
+CRM Event Pipeline is a local analytics tool that ingests CRM lifecycle events, computes funnel metrics, detects account follow-up signals, and uses a local AI analyst to explain customer pipeline movement.
 
-## Why It Matches CRM / Platform Jobs
+The project models a real operational analytics workflow where deterministic metrics drive the dashboard and AI converts those metrics into clear account actions.
 
-- TikTok Global CRM-style transaction and event workflow
-- Shows event ingestion, schema design, aggregation, and reporting
-- Useful for backend, data platform, and product analytics roles
+## What It Does
 
-## Features
+- Loads CRM events from JSON.
+- Groups events by account and lifecycle stage.
+- Computes funnel counts, conversion movement, and stalled accounts.
+- Identifies follow-up opportunities and account health signals.
+- Serves a browser dashboard for quick review.
+- Adds AI-generated account and pipeline interpretation.
 
-- JSON event ingestion
-- SQLite event storage
-- Funnel metrics by account
-- Event latency and status summaries
-- JSON report output
+## AI Features
+
+- Local AI analyst explains funnel health and follow-up priorities.
+- AI summary converts raw lifecycle counts into operator-ready actions.
+- Recommendations are grounded in deterministic event metrics.
+- Browser UI shows operational metrics and AI analysis together.
+
+## Architecture
+
+```text
+samples/events.json
+        |
+        v
+CRM event parser -> account grouping -> funnel metrics -> follow-up flags
+        |
+        v
+Local AI analyst -> pipeline summary + next actions
+        |
+        v
+Browser dashboard
+```
 
 ## Run
 
 ```powershell
-python app.py --events samples/events.json
+run.bat
 ```
 
-## Engineering Impact
-- Built a Python CRM event pipeline that ingests JSON events, stores them in SQLite, and generates account-level funnel metrics.
-- Modeled customer lifecycle events such as signup, activation, purchase, and renewal for backend/product analytics reporting.
-- Produced structured summaries for transaction status, conversion progress, and event counts.
+## Local AI Setup
 
-## Project Workbench
+- Designed for a local OpenAI-compatible model server.
+- Default project model: `google/gemma-4-e4b`.
+- Deterministic dashboard metrics continue to work without AI.
 
-Launch the production-style desktop workbench with:
+## Main Files
 
-```powershell
-launch-workbench.bat
-```
+- `app.py` - event processing and AI insight generation.
+- `web/index.html` - dashboard UI.
+- `samples/events.json` - CRM event dataset.
+- `agents/Agent.md` - AI analyst instructions.
 
-What it adds:
+## Output
 
-- Local-first AI copilot using `google/gemma-4-e4b` by default
-- Operator-focused workbench for reviewing real project inputs and outputs
-- System design, production-impact, and operational brief generation on demand
-- Grounded responses based on this project's README, sample files, and deterministic outputs
-
+The dashboard shows funnel stage counts, account health indicators, recommended follow-up actions, and a local AI analyst summary.
