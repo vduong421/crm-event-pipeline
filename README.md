@@ -2,6 +2,10 @@
 
 CRM Event Pipeline is a local analytics tool that ingests CRM lifecycle events, computes funnel metrics, detects account follow-up signals, and uses a local AI analyst to explain customer pipeline movement.
 
+## Product Screenshot
+
+![Product screenshot](assets/product-screenshot.png)
+
 The project models a real operational analytics workflow where deterministic metrics drive the dashboard and AI converts those metrics into clear account actions.
 
 ## What It Does
